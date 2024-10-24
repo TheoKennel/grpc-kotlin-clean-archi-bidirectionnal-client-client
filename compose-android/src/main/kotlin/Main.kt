@@ -46,10 +46,10 @@ fun client1Screen() {
 
     Column(
         modifier =
-            Modifier
-                .fillMaxSize()
-                .background(Color.Black)
-                .padding(16.dp),
+        Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -61,10 +61,10 @@ fun client1Screen() {
             value = log,
             onValueChange = { log = it },
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .height(100.dp)
-                    .background(Color.Gray),
+            Modifier
+                .fillMaxWidth()
+                .height(100.dp)
+                .background(Color.Gray),
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -96,10 +96,10 @@ fun client2Screen() {
 
     Column(
         modifier =
-            Modifier
-                .fillMaxSize()
-                .background(Color.Black)
-                .padding(16.dp),
+        Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -132,28 +132,28 @@ fun client2Screen() {
         // Bouton qui simule le "push to talk"
         Box(
             modifier =
-                Modifier
-                    .size(200.dp, 50.dp)
-                    .background(Color.LightGray)
-                    .pointerInput(Unit) {
-                        detectTapGestures(
-                            onPress = {
-                                AudioGrpc().startAudio()
+            Modifier
+                .size(200.dp, 50.dp)
+                .background(Color.LightGray)
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onPress = {
+                            AudioGrpc().startAudio()
 
-                                scope.launch {
-                                    delay(100)
-                                    if (pushToTalkState == "Appuyé") {
-                                        AudioGrpc().broadcastToAll()
-                                    }
+                            scope.launch {
+                                delay(100)
+                                if (pushToTalkState == "Appuyé") {
+                                    AudioGrpc().broadcastToAll()
                                 }
+                            }
 
-                                tryAwaitRelease()
+                            tryAwaitRelease()
 
-                                AudioGrpc().stopAudio()
-                                pushToTalkState = "Relâché"
-                            },
-                        )
-                    },
+                            AudioGrpc().stopAudio()
+                            pushToTalkState = "Relâché"
+                        },
+                    )
+                },
             contentAlignment = Alignment.Center,
         ) {
             Text(pushToTalkState, color = Color.Black)
@@ -181,10 +181,10 @@ fun serverScreen() {
     AudioServer().start()
     Column(
         modifier =
-            Modifier
-                .fillMaxSize()
-                .background(Color.Black)
-                .padding(16.dp),
+        Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {

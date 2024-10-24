@@ -72,8 +72,9 @@ class AudioGrpc : Closeable {
                 val stream =
                     audioStream {
                         clientId = "evasion-app"
-                        audioData =
+//                        audioData =
                     }
+                emit(stream)
             }
     }
 }
