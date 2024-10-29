@@ -12,7 +12,7 @@ kotlin {
 
 dependencies {
     implementation(project(":client"))
-    implementation(project(":clientController"))
+    implementation(project(":app-client-controller"))
     implementation(project(":server"))
 
     implementation(compose.desktop.currentOs)

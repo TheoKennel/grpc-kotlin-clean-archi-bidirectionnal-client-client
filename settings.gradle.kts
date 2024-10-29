@@ -1,7 +1,7 @@
 rootProject.name = "grpc-poc"
 
 if (startParameter.taskRequests.find { it.args.contains("assemble") } == null) {
-    include("proto", "stub", "client", "server", "clientController", "compose-android")
+    include("proto", "stub", "client", "server", "app-client-controller", "compose-android")
 } else {
     include("proto", "stub", "server")
 }
@@ -26,3 +26,6 @@ dependencyResolutionManagement {
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
 }
+include(":features")
+include("untitled")
+include("features")

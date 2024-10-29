@@ -1,25 +1,18 @@
 package audio
 
+import com.google.protobuf.Empty
 import common.Config
 import io.grpc.Server
 import io.grpc.ServerBuilder
-import io.grpc.Status
-import io.grpc.StatusException
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
-
-enum class Command {
-    START,
-    STOP,
-}
-
-// coment, ktlint check
 
 class AudioServer(
     private val port: Int,
+) {
     private val server: Server =
         ServerBuilder
             .forPort(
@@ -29,8 +22,8 @@ class AudioServer(
             .maxConnectionIdle(Long.MAX_VALUE, TimeUnit.MINUTES)
             .maxConnectionAge(Long.MAX_VALUE, TimeUnit.MINUTES)
             .addService(AudioService())
-            .build(),
-) {
+            .build()
+
     fun start() {
         server.start()
         println("Server started, listening on $port")
@@ -51,101 +44,90 @@ class AudioServer(
     }
 
     internal class AudioService : AudioGuideGrpcKt.AudioGuideCoroutineImplBase() {
-        private val audioFlow = MutableSharedFlow<AudioStream>()
+        private val audioFlow = ConcurrentHashMap<String, MutableSharedFlow<AudioResponse>>()
+        private val commandFlow = ConcurrentHashMap<String, MutableSharedFlow<AudioCommandResponse>>()
 
-        private val audioCommand = MutableSharedFlow<AudioCommand>()
+        override suspend fun sendAudioCommand(request: AudioCommandRequest): Empty {
+            println("Received request ${request.command}, request client : ${request.clientId}")
+            val senderId = request.clientId
+            val targetClientId = request.targetClientId
 
-        private val connectedClients = mutableSetOf<String>()
-
-        private val mutex = Mutex()
-
-        override suspend fun initializeConnection(request: ConnectedClient): GenericResponse {
-            mutex.withLock {
-                connectedClients.add(request.clientId)
-            }
-            println("Connected client ${request.clientId}")
-            println("Connected client list $connectedClients")
-            return genericResponse {
-                message = "Connected to audio server"
-            }
+            val response =
+                audioCommandResponse {
+                    command = request.command
+                }
+			
+            emitToClients(commandFlow, senderId, targetClientId, response)
+            return Empty.getDefaultInstance()
         }
 
-        override fun broadcastAudioToAll(requests: Flow<AudioStream>): Flow<AudioStream> =
-            flow {
-                try {
-                    requests.collect { request ->
-                        connectedClients.forEach { clientId ->
-                            if (clientId !== request.clientId) {
-                                audioFlow.emit(request)
-                            }
+        override fun audioCommandStream(request: ConnectedClient): Flow<AudioCommandResponse> =
+            channelFlow {
+                println("Received request in audio Stream request client : ${request.clientId}")
+                val clientId = request.clientId
+                val clientFlow = commandFlow.getOrPut(clientId) { MutableSharedFlow() }
+			
+                val responseJob =
+                    launch {
+                        clientFlow.collect { response ->
+                            send(response)
                         }
                     }
-                } catch (e: StatusException) {
-                    println("Error occurred while broadcasting audio : ${e.message}")
-                    throw StatusException(
-                        Status.INTERNAL
-                            .withDescription("Error occurred while broadcasting audio : ${e.message}")
-                            .withCause(e),
-                    )
+                awaitClose {
+                    responseJob.cancel()
+                    commandFlow.remove(clientId)
+                    println("Client $clientId disconnected from command flow")
                 }
             }
 
-        override fun broadcastAudioToClient(requests: Flow<AudioStream>): Flow<AudioStream> =
-            flow {
-                try {
-                    requests.collect { request ->
-                        connectedClients.forEach { clientId ->
-                            if (clientId === request.targetClientId) {
-                                audioFlow.emit(request)
-                            }
+        override suspend fun sendAudioData(request: AudioRequest): Empty {
+            val senderId = request.clientId
+            val targetClientId = request.targetClientId
+			
+            val response =
+                audioResponse {
+                    audioData = request.audioData
+                    sequenceNumber = request.sequenceNumber
+                }
+			
+            emitToClients(audioFlow, senderId, targetClientId, response)
+            return Empty.getDefaultInstance()
+        }
+
+        override fun broadcastAudio(request: ConnectedClient): Flow<AudioResponse> =
+            channelFlow {
+                println("Received request in broadcastAudio Stream request client : ${request.clientId}")
+                val clientId = request.clientId
+                val clientFlow = audioFlow.getOrPut(clientId) { MutableSharedFlow() }
+
+                val response =
+                    launch {
+                        clientFlow.collect { response ->
+                            send(response)
                         }
                     }
-                } catch (e: StatusException) {
-                    println("Error occurred while broadcasting audio : ${e.message}")
-                    throw StatusException(
-                        Status.INTERNAL
-                            .withDescription("Error occurred while broadcasting audio : ${e.message}")
-                            .withCause(e),
-                    )
+
+                awaitClose {
+                    audioFlow.remove(clientId)
+                    response.cancel()
+                    println("Client $clientId disconnected from audio flow")
                 }
             }
 
-        override fun startAudio(requests: Flow<AudioCommand>): Flow<AudioCommand> =
-            flow {
-                try {
-                    requests.collect { command ->
-                        delay(1000)
-                        audioCommand.emit(command)
+        private suspend fun <T> emitToClients(
+            flows: ConcurrentHashMap<String, MutableSharedFlow<T>>,
+            senderId: String,
+            targetId: String?,
+            response: T,
+        ) {
+            if (targetId != null && targetId != senderId) {
+                flows[targetId]?.emit(response)
+            } else {
+                flows.forEach { (id, flow) ->
+                    if (id != senderId) {
+                        flow.emit(response)
                     }
-                    audioCommand.collect {
-                        emit(it)
-                    }
-                } catch (e: StatusException) {
-                    throw StatusException(Status.INTERNAL.withDescription("Error occurred while starting audio : ${e.message}"))
-                } catch (e: Exception) {
-                    println("There is an exception : $e")
                 }
-            }
-
-        override fun stopAudio(requests: Flow<AudioCommand>): Flow<AudioCommand> =
-            flow {
-                try {
-                    val audioRequest =
-                        audioCommand {
-                            command = Command.STOP
-                        }
-                    audioCommand.emit(audioRequest)
-                } catch (e: StatusException) {
-                    throw StatusException(Status.INTERNAL.withDescription("Error occurred while stopping audio : ${e.message}"))
-                }
-            }
-
-        override suspend fun clientDisconnection(request: ConnectedClient): GenericResponse {
-            mutex.withLock {
-                connectedClients.remove(request.clientId)
-            }
-            return genericResponse {
-                message = "Client remove from client id list in audio server"
             }
         }
     }

@@ -2,65 +2,50 @@
 
 agp = "8.6.1"
 kotlin = "2.0.20"
-hilt = "2.52"
-hilt-compose = "1.2.0"
-junitVersion = "1.2.1"
-coroutines-test = "1.9.0"
-truth = "1.4.4"
-mocck = "1.13.12"
 protobuf = "0.9.4"
 grpc = "1.62.2"
 coroutines = "1.8.0"
 ktlint = "11.5.0"
-protoc = "3.25.3"
 grpc-kotlin-stub = "1.4.1"
 grpc-testing = "1.62.2"
-protoc-gen-grpc-kotlin = "1.4.1"
 proto-kotlin-lite = "3.25.3"
-proto-java-util = "3.25.3"
-protoc-gen-grpc-java = "1.62.2"
 kotlin-test = "1.9.23"
 compose = "1.6.10"
+kapt = "1.9.0"
+dagger = "2.46"
+gson = "2.10.1"
+protoc = "3.25.3"
+protoc-gen-grpc-kotlin = "1.4.1"
+protoc-gen-grpc-java = "1.62.2"
 
 [libraries]
 
-grpc-okhttp = { group = "io.grpc", name = "grpc-okhttp", version.ref = "grpc" }
 grpc-netty = { group = "io.grpc", name = "grpc-netty", version.ref = "grpc" }
 grpc-protobuf-lite = { group = "io.grpc", name = "grpc-protobuf-lite", version.ref = "grpc" }
 grpc-testing = { group = "io.grpc", name = "grpc-testing", version.ref = "grpc-testing" }
 grpc-kotlin-stub = { group = "io.grpc", name = "grpc-kotlin-stub", version.ref = "grpc-kotlin-stub" }
 
+dagger = { group = "com.google.dagger", name = "dagger", version.ref = "dagger"}
+dagger-kapt = { group = "com.google.dagger", name = "dagger-compiler", version.ref = "dagger"}
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson"}
+
+protobuf-kotlin-lite = { group = "com.google.protobuf", name = "protobuf-kotlin-lite", version.ref = "proto-kotlin-lite" }
 protoc = { group = "com.google.protobuf", name = "protoc", version.ref = "protoc" }
 protoc-gen-grpc-kotlin = { group = "io.grpc", name = "protoc-gen-grpc-kotlin", version.ref = "protoc-gen-grpc-kotlin" }
 protoc-gen-grpc-java = { group = "io.grpc", name = "protoc-gen-grpc-java", version.ref = "protoc-gen-grpc-java" }
-protobuf-kotlin-lite = { group = "com.google.protobuf", name = "protobuf-kotlin-lite", version.ref = "proto-kotlin-lite" }
 
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
-
-hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
-hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
-hilt-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hilt-compose" }
-
 kotlin-test-junit = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit", version.ref = "kotlin-test" }
-test-coroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines-test" }
-test-mockk = { group = "io.mockk", name = "mockk", version.ref = "mocck" }
-test-truth = { group = "com.google.truth", name = "truth", version.ref = "truth" }
 
 [plugins]
 
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
-compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
 
 jetpack-compose = { id = "org.jetbrains.compose", version.ref = "compose"}
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin"}
-
+kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kapt"}
 protobuf = { id = "com.google.protobuf", version.ref = "protobuf" }
-
-
-[bundles]
-
-hilt = [ "hilt-android", "hilt-compose" ]

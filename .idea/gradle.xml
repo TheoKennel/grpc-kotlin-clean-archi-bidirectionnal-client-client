@@ -6,17 +6,21 @@
       <GradleProjectSettings>
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="gradleHome" value="" />
+        <option name="gradleJvm" value="#GRADLE_LOCAL_JAVA_HOME" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/app-client-controller" />
             <option value="$PROJECT_DIR$/client" />
-            <option value="$PROJECT_DIR$/clientController" />
             <option value="$PROJECT_DIR$/compose-android" />
+            <option value="$PROJECT_DIR$/features" />
             <option value="$PROJECT_DIR$/proto" />
             <option value="$PROJECT_DIR$/server" />
             <option value="$PROJECT_DIR$/stub" />
+            <option value="$PROJECT_DIR$/untitled" />
           </set>
         </option>
+        <option name="resolveExternalAnnotations" value="false" />
       </GradleProjectSettings>
     </option>
   </component>
