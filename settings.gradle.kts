@@ -1,7 +1,7 @@
 rootProject.name = "grpc-poc"
 
 if (startParameter.taskRequests.find { it.args.contains("assemble") } == null) {
-    include("proto", "stub", "client", "server", "app-client-controller", "compose-android")
+    include("proto", "stub", "server", "app-client-controller", "compose-android")
 } else {
     include("proto", "stub", "server")
 }

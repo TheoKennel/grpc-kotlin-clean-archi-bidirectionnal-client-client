@@ -30,21 +30,31 @@ class AudioClient
 
         init {
             job.launch {
-                while (true) {
-                    try {
-                        println("Attempting to start command and audio streams...")
-                        commandStream()
-                        audioStream()
-                    } catch (e: Exception) {
-                        println("Stream failed: $e. Retrying ...")
-                        delay(10000)
+                launch {
+                    while (true) {
+                        try {
+                            commandStream()
+                        } catch (e: Exception) {
+                            println("Command stream failed: $e. Retrying in 10 seconds...")
+                            delay(10000)
+                        }
+                    }
+                }
+			
+                launch {
+                    while (true) {
+                        try {
+                            audioStream()
+                        } catch (e: Exception) {
+                            println("Audio stream failed: $e. Retrying in 10 seconds...")
+                            delay(10000)
+                        }
                     }
                 }
             }
         }
 
         private suspend fun commandStream() {
-            println("Start of command stream")
             helper.stub.audioCommandStream(request).collect { command ->
                 if (command.command == Command.START) {
                     startAudio.invoke()
@@ -57,15 +67,18 @@ class AudioClient
         }
 
         private suspend fun audioStream() {
-            println("Start of audio stream")
-            helper.stub.broadcastAudio(request).collect { audio ->
-                listenAudio.invoke(
-                    AudioChunk(
-                        audio.audioData.toByteArray(),
-                        audio.sequenceNumber,
-                    ),
-                )
-                println("Received Audio")
+            try {
+                println("Start of audio stream")
+                helper.stub.broadcastAudio(request).collect { audio ->
+                    listenAudio.invoke(
+                        AudioChunk(
+                            audio.audioData.toByteArray(),
+                            audio.sequenceNumber,
+                        ),
+                    )
+                }
+            } catch (e: Exception) {
+                println("Got a pb in audio Stream audio client : $e")
             }
         }
     }

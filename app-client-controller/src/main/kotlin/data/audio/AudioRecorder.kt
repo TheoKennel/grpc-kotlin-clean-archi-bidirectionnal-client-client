@@ -10,26 +10,25 @@ import java.io.File
 import java.io.FileInputStream
 
 object AudioRecorder {
-    private val file = File("app-client-controller/src/main/kotlin/data/audio/audio-10s.wav")
-    private val fileStream = FileInputStream(file)
+    private val file = File("app-client-controller/src/main/kotlin/data/audio/audio-10s-16bit.wav")
     private var isRecording: Boolean = false
 
     fun recordAudio(): Flow<AudioChunk> =
         flow {
             var sequenceNumber = 0
             isRecording = true
-            val buffer = ByteArray(BUFFER_SIZE)
-            while (isRecording) {
-                val readBytes = fileStream.read(buffer, 0, buffer.size)
-                if (readBytes > 0) {
-                    emit(AudioChunk(buffer.copyOf(readBytes), sequenceNumber))
-                    sequenceNumber++
-                }
-                if (readBytes == -1) {
-                    isRecording = false
-                    break
+            FileInputStream(file).use { fileStream ->
+                val buffer = ByteArray(BUFFER_SIZE)
+                var readBytes: Int
+                while (isRecording) {
+                    readBytes = fileStream.read(buffer)
+                    if (readBytes > 0) {
+                        emit(AudioChunk(buffer.copyOf(readBytes), sequenceNumber))
+                        sequenceNumber++
+                    } else {
+                        isRecording = false
+                    }
                 }
             }
-            fileStream.close()
         }.flowOn(Dispatchers.IO)
 }

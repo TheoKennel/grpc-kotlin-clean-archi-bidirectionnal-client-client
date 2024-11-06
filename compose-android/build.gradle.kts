@@ -7,11 +7,10 @@ plugins {
 }
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 dependencies {
-    implementation(project(":client"))
     implementation(project(":app-client-controller"))
     implementation(project(":server"))
 

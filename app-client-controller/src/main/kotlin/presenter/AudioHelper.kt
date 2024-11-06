@@ -16,8 +16,6 @@ class AudioHelper : Closeable {
             .forAddress("localhost", PORT)
             .keepAliveTime(30, TimeUnit.SECONDS)
             .keepAliveTimeout(15, TimeUnit.SECONDS)
-            .enableRetry()
-            .maxRetryAttempts(20)
             .keepAliveWithoutCalls(true)
             .idleTimeout(Long.MAX_VALUE, TimeUnit.MINUTES)
             .usePlaintext()
@@ -26,6 +24,11 @@ class AudioHelper : Closeable {
     val stub = AudioGuideGrpcKt.AudioGuideCoroutineStub(channel)
 
     override fun close() {
-        channel.shutdownNow()
+        try {
+            channel.shutdown().awaitTermination(5, TimeUnit.SECONDS)
+        } catch (e: InterruptedException) {
+            println("Error while shutting down channel: ${e.message}")
+            channel.shutdownNow()
+        }
     }
 }
